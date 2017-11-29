@@ -16,7 +16,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 
     public static String DATABASE_NAME = "Message.db";
     public static String TABLE_NAME = "message_table";
-    public static int VERSION_NUM = 101;
+    public static int VERSION_NUM = 105;
 
     public static final String KEY_ID = "_id";
     public static final String KEY_MESSAGE = "message";
@@ -59,5 +59,9 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase db) {
         Log.i("Database ", "onOpen was called");
+    }
+
+    public void DeleteMessage (String id){
+        this.getWritableDatabase().execSQL("DELETE FROM "+TABLE_NAME+" WHERE "+KEY_ID+" = "+id);
     }
 }

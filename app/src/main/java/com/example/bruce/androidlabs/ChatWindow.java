@@ -1,21 +1,27 @@
 package com.example.bruce.androidlabs;
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
+import android.sax.RootElement;
+import android.text.style.UpdateLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -30,15 +36,16 @@ import static com.example.bruce.androidlabs.ChatDatabaseHelper.TABLE_NAME;
 
 public class ChatWindow extends Activity {
 
-    Button btnSend;
-    EditText chatText;
-    ListView chatView;
-    ArrayList<String>  storedMessage;
-    SQLiteDatabase db;
+    private Button btnSend;
+    private EditText chatText;
+    private ListView chatView;
+    private ArrayList<String>  storedMessage;
     protected static final String ACTIVITY_NAME = "ChatWindow";
+    private ChatAdapter messageAdapter;
 
-//    ChatDatabaseHelper cDbhelper= new ChatDatabaseHelper(this);
-//    final SQLiteDatabase db = cDbhelper.getWritableDatabase();
+    private ChatDatabaseHelper cDbhelper;
+    private SQLiteDatabase db;
+    private Cursor cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,10 +57,39 @@ public class ChatWindow extends Activity {
         chatView = (ListView)findViewById(R.id.chatView);
         storedMessage = new ArrayList<String>();
 
-        final ChatAdapter messageAdapter = new ChatAdapter(this);
+        messageAdapter = new ChatAdapter(this);
         chatView.setAdapter(messageAdapter);
-        ChatDatabaseHelper cDbhelper= new ChatDatabaseHelper(this);
+        cDbhelper= new ChatDatabaseHelper(this);
         db = cDbhelper.getWritableDatabase();
+
+        if (findViewById(R.id.listDetail_Tablet) != null){
+            Log.i(ACTIVITY_NAME, "RUN ON TABLET.");
+        }else{
+            Log.i(ACTIVITY_NAME,"RUN ON PHONE.");
+        }
+
+        chatView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent,View view, int position, long id){
+
+                String dmessage = parent.getItemAtPosition(position).toString();
+                Long messID = parent.getItemIdAtPosition(position);
+                if(findViewById(R.id.listDetail_Tablet) != null){
+                    Bundle bundle = new Bundle();
+                    bundle.putString("Message",dmessage);
+                    bundle.putString("MessageId",messID+"");
+                    bundle.putBoolean("isTablet",true);
+                    MessageFragment mFragment = new MessageFragment();
+                    mFragment.setArguments(bundle);
+                    FragmentTransaction ft = getFragmentManager().beginTransaction();
+                    ft.add(R.id.listDetail_Tablet,mFragment).commit();
+                }else {
+                Intent intent = new Intent(ChatWindow.this,MessageDetails.class);
+                intent.putExtra("Message",dmessage);
+                intent.putExtra("MessageId",messID+"");
+                startActivityForResult(intent,10);}
+            }
+        });
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,7 +104,7 @@ public class ChatWindow extends Activity {
             db.insert(TABLE_NAME, "", initial);
         }});
 
-        Cursor cursor = db.query( false, TABLE_NAME, MESSAGE_FIELDS, null, null, null, null, null, null);
+        cursor = db.query( false, TABLE_NAME, MESSAGE_FIELDS, null, null, null, null, null, null);
 //        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME ,null);
         int numResults = cursor.getCount();
         int numColumns = cursor.getColumnCount();
@@ -85,6 +121,15 @@ public class ChatWindow extends Activity {
         for(int i=0;i<numResults;i++){
             Log.i(ACTIVITY_NAME,"The " + i + " row is " + cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
             cursor.moveToNext();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 10){
+            String id = data.getStringExtra("MessageId");
+            cDbhelper.DeleteMessage(id);
         }
     }
 
@@ -113,11 +158,17 @@ public class ChatWindow extends Activity {
             message.setText(getItem(position));
             return result;
         }
+
+        public long getItemId(int position){
+            cursor.moveToPosition(position);
+            return cursor.getLong(cursor.getColumnIndex(KEY_ID));
+        }
     }
 
     protected void onResume(){
         super.onResume();
         Log.i(ACTIVITY_NAME,"In onResume()");
+        notifyChange();
     }
 
     protected void onStart(){
@@ -139,5 +190,32 @@ public class ChatWindow extends Activity {
         super.onDestroy();
         db.close();
         Log.i(ACTIVITY_NAME,"In onDestroy()");
+    }
+
+    public void notifyChange(){
+
+        storedMessage = new ArrayList<String>();
+        chatView.setAdapter(messageAdapter);
+        cDbhelper= new ChatDatabaseHelper(this);
+        db = cDbhelper.getWritableDatabase();
+
+        cursor = db.query( false, TABLE_NAME, MESSAGE_FIELDS, null, null, null, null, null, null);
+//        Cursor cursor = db.rawQuery("select * from " + TABLE_NAME ,null);
+        int numResults = cursor.getCount();
+        int numColumns = cursor.getColumnCount();
+
+        cursor.moveToFirst();//resets the iteration of results
+        while(!cursor.isAfterLast()) {
+            Log.i(ACTIVITY_NAME, "SQL MESSAGE: " + cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
+            storedMessage.add(cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
+            cursor.moveToNext();
+        }
+        Log.i(ACTIVITY_NAME,"Cursor's column count = " + cursor.getColumnCount());
+
+        cursor.moveToFirst();
+        for(int i=0;i<numResults;i++){
+            Log.i(ACTIVITY_NAME,"The " + i + " row is " + cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
+            cursor.moveToNext();
+        }
     }
 }

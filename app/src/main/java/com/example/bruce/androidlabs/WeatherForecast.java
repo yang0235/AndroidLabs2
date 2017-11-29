@@ -103,15 +103,18 @@ public class WeatherForecast extends Activity {
                     event = xpp.next();
                 }
             } catch (IOException e) {
-                return "connection_error";
+                return "";
+//                Log.e("ERROR","IOException");
             } catch (XmlPullParserException e) {
-                return "xml_error";
+                return "";
+//                Log.e("ERROR","XmlPullParseException");
             }
 
             File file = getBaseContext().getFileStreamPath(iconName+".png");
             try{
                 FileInputStream fis = openFileInput(iconName+".png");
                 weatherPic = BitmapFactory.decodeStream(fis);
+                this.publishProgress(100);
                 Log.i(ACTIVITY_NAME, "Image already existed");
             }catch(FileNotFoundException e){
                 Log.i(ACTIVITY_NAME, "Image not exist, need to be download first");
@@ -122,6 +125,7 @@ public class WeatherForecast extends Activity {
                     int responseCode = connection.getResponseCode();
                     if (responseCode == 200) {
                         weatherPic = BitmapFactory.decodeStream(connection.getInputStream());
+                        this.publishProgress(100);
                         FileOutputStream outputStream = openFileOutput(iconName+".png", Context.MODE_PRIVATE);
                         weatherPic.compress(Bitmap.CompressFormat.PNG,80,outputStream);
                         outputStream.flush();
@@ -129,7 +133,7 @@ public class WeatherForecast extends Activity {
                     }
                 }catch(MalformedURLException g){
                     e.printStackTrace();
-                }catch (Exception f) {
+                }catch (IOException i) {
                     e.printStackTrace();
                 }
             }
