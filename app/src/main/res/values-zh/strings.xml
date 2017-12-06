@@ -16,4 +16,14 @@
     <string name="buttonChat">开始聊天</string>
     <string name="buttonSend">发送</string>
     <string name="Weather">天气预报</string>
+    <string name="HintMessage">显示信息</string>
+    <string name="HineID">显示ID</string>
+    <string name="delete">删除这条信息</string>
+    <string name="testToolBar">测试工具条</string>
+    <string name="one">第一</string>
+    <string name="two">第二</string>
+    <string name="three">第三</string>
+    <string name="four">关于</string>
+    <string name="star">请输入新信息</string>
+    <string name="newMessage">在这里输入信息</string>
 </resources>

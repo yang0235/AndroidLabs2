@@ -15,4 +15,16 @@
     <string name="buttonChat">Start Chat</string>
     <string name="buttonSend">Send</string>
     <string name="Weather">WeatherForecast</string>
+    <string name="HintMessage">MessageHere</string>
+    <string name="HintID">ID=</string>
+    <string name="delete">Delete this message</string>
+    <string name="title_activity_test_tool_bar">TestToolBar</string>
+    <string name="testToolBar">Test ToolBar</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="one">One</string>
+    <string name="two">Two</string>
+    <string name="three">Three</string>
+    <string name="four">About</string>
+    <string name="star">Please enter a new message</string>
+    <string name="newMessage">Enter message here</string>
 </resources>
